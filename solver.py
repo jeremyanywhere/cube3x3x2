@@ -100,7 +100,12 @@ def top_row_rot(current):
     new_pos[33] = current[20]; new_pos[41] = current[12]
     return new_pos
 
-def middle_row_rot(current=[]):
+def middle_row_rot(current):
+    new_pos = current[:]
+    new_pos[3] = current[26]; new_pos[4] = current[25]; new_pos[5] = current[24]
+    new_pos[26] = current[3]; new_pos[25] = current[4]; new_pos[24] = current[5]
+    new_pos[13] = current[40]; new_pos[19] = current[34]
+    new_pos[34] = current[19]; new_pos[40] = current[13]
     return []
 
 def bottom_row_rot(current=[]):
@@ -115,20 +120,3 @@ def middle_col_rot(current=[]):
 def right_col_rot(current=[]):
     return []
 
-# You can add code within each function to perform specific operations on the 'current' list
-
-
-
-To rotate just a corner piece:
-Moves are: ['', 'start', 'front_anti_clock', 'right_anti_clock', 'front_clock', 'right_clock', 'back_clock', 'front_clock', 'back_clock', 'back_clock']
-done.
-
-Bug::
-
-  def left_clock(self, pieces):
-        self.rot_clock(pieces,8,13,14)
-        self.rot_clock(pieces, 7,17,15)
-       
-def left_anti_clock(self, pieces):
-        self.rot_anti_clock(pieces,8,13,14)
-        self.rot_anti_clock(pieces, 5,17,15)
