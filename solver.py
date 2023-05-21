@@ -18,7 +18,7 @@
 
 
 cube = list(range(42))
-
+MAX_DEPTH = 10
 moves = ['front_clock', 'front_anticlock', 'front_180',
          'back_clock', 'back_anticlock','back_180', 
          'top_row_rot','middle_row_rot','bottom_row_rot',
@@ -109,14 +109,65 @@ def middle_row_rot(current):
     return []
 
 def bottom_row_rot(current=[]):
+    new_pos = current[:]
+    new_pos[6] = current[29]; new_pos[7] = current[28]; new_pos[8] = current[27]
+    new_pos[29] = current[6]; new_pos[28] = current[7]; new_pos[27] = current[8]
+    new_pos[15] = current[38]; new_pos[16] = current[37]; new_pos[17] = current[36]
+    new_pos[38] = current[15]; new_pos[37] = current[16]; new_pos[36] = current[17]
+    new_pos[14] = current[39]; new_pos[36] = current[18]
+    new_pos[39] = current[14]; new_pos[18] = current[36]
+    return new_pos
+
+def left_col_rot(current):
+    new_pos = current[:]
+    new_pos[18] = current[41]; new_pos[19] = current[40]; new_pos[20] = current[39]
+    new_pos[41] = current[18]; new_pos[40] = current[19]; new_pos[39] = current[20]
+    new_pos[0] = current[27]; new_pos[3] = current[24]; new_pos[6] = current[21]
+    new_pos[27] = current[0]; new_pos[24] = current[3]; new_pos[21] = current[6]
+    new_pos[9] = current[38]; new_pos[38] = current[9]
+    new_pos[30] = current[17]; new_pos[17] = current[30]
+    return new_pos
+
+def middle_col_rot(current):
+    new_pos = current[:]
+    new_pos[1] = current[28]; new_pos[4] = current[25]; new_pos[7] = current[22]
+    new_pos[28] = current[1]; new_pos[25] = current[4]; new_pos[22] = current[7]
+    new_pos[10] = current[37]; new_pos[37] = current[10]
+    new_pos[31] = current[16]; new_pos[16] = current[31]
     return []
 
-def left_col_rot(current=[]):
-    return []
+def right_col_rot(current):
+    new_pos = current[:]
+    new_pos[12] = current[35]; new_pos[13] = current[34]; new_pos[14] = current[33]
+    new_pos[35] = current[12]; new_pos[34] = current[13]; new_pos[33] = current[14]
+    new_pos[2] = current[29]; new_pos[5] = current[26]; new_pos[8] = current[23]
+    new_pos[29] = current[2]; new_pos[26] = current[5]; new_pos[23] = current[8]
+    new_pos[11] = current[32]; new_pos[32] = current[11]
+    new_pos[36] = current[15]; new_pos[15] = current[36]
+    return new_pos
 
-def middle_col_rot(current=[]):
-    return []
+def compare(source, target):
+    for i in range(len(source)):
+        if source[i] != target[i]:
+            return False
+    return True
 
-def right_col_rot(current=[]):
-    return []
+def find_path(depth, source, target, breadcrumbs):
+    if compare(source, target):
+        print (breadcrumbs)
+        return True
+    if depth > MAX_DEPTH:
+        return False
+    for move in moves:
+        breadcrumbs.append(move)
+        fnc = locals()[move]
+        res = fnc(source)
+        ret = find_path(depth +1, source, res, breadcrumbs)
+        if ret == False:
+            breadcrumbs.pop()
+
+
+    
+    
+
 
