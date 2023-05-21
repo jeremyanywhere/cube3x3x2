@@ -18,7 +18,8 @@
 
 
 cube = list(range(42))
-MAX_DEPTH = 10
+MAX_DEPTH = 2
+TOP_ROW = [9,10,11,12,30,31,32,33,0,1,2,20,41,21,22,23]
 moves = ['front_clock', 'front_anticlock', 'front_180',
          'back_clock', 'back_anticlock','back_180', 
          'top_row_rot','middle_row_rot','bottom_row_rot',
@@ -68,7 +69,7 @@ def back_clock(current):
     new_pos[39] = current[36]; new_pos[40] = current[37]; new_pos[41] = current[38]
     return new_pos
 
-def back_anti_clock(current):
+def back_anticlock(current):
     new_pos = current[:]
     new_pos[21] = current[23]; new_pos[22] = current[26]; new_pos[23] = current[29]
     new_pos[24] = current[22];                            new_pos[26] = current[28]
@@ -106,7 +107,7 @@ def middle_row_rot(current):
     new_pos[26] = current[3]; new_pos[25] = current[4]; new_pos[24] = current[5]
     new_pos[13] = current[40]; new_pos[19] = current[34]
     new_pos[34] = current[19]; new_pos[40] = current[13]
-    return []
+    return  new_pos
 
 def bottom_row_rot(current=[]):
     new_pos = current[:]
@@ -134,7 +135,7 @@ def middle_col_rot(current):
     new_pos[28] = current[1]; new_pos[25] = current[4]; new_pos[22] = current[7]
     new_pos[10] = current[37]; new_pos[37] = current[10]
     new_pos[31] = current[16]; new_pos[16] = current[31]
-    return []
+    return  new_pos
 
 def right_col_rot(current):
     new_pos = current[:]
@@ -147,26 +148,63 @@ def right_col_rot(current):
     return new_pos
 
 def compare(source, target):
+    if len(source) != len(target) :
+        print ("Lengths not equal " + str(len(source)) +","+str(len(target)))
     for i in range(len(source)):
         if source[i] != target[i]:
             return False
     return True
 
 def find_path(depth, source, target, breadcrumbs):
-    if compare(source, target):
-        print (breadcrumbs)
-        return True
+    
     if depth > MAX_DEPTH:
         return False
+    # step through all possible moves, if we have the target in any case, stop iterating and return. 
+    # If we don't have the target make the move, add to breadcrumbs and recurse. 
+    # TODO, also create param with list of lists which is all the  aggregated solutions.
     for move in moves:
-        breadcrumbs.append(move)
-        fnc = locals()[move]
+        fnc = globals()[move]
         res = fnc(source)
-        ret = find_path(depth +1, source, res, breadcrumbs)
-        if ret == False:
-            breadcrumbs.pop()
+        if compare(res, target):  
+            print (f"path is: {breadcrumbs+[move]}\n\n\n")
+            found = True
+            break
+        ret = find_path(depth+1, res, target, breadcrumbs + [move])
 
+# helps fill a cube with numbers
+def fill(lst, colors):
+    for c in colors:
+        lst[c] = c
 
+def test1():
+    #fill with -1, so those squares don't matter
+    source = [-1 for _ in range(42)]
+    #fill(source, TOP_ROW)
+    fill(source, [13,34]) #front right middle and back right middle
+    fill(source, [])
+    target = source [:]
+    target[13] = source[34]
+    target[34] = source[13]
+    print(f"targ... is {target}  \nsource. is {source}")
+    source = middle_row_rot(source)
+    source = left_col_rot(source)
+    source = middle_row_rot(source)
+    source = right_col_rot(source)
+    print(f"after  rot: \ntarg... is {target} - \nsource. is {source}")
+    print (compare(source, target))
+    #find_path(0,source,target,[])
+ 
+def test2():
+    #fill with -1, so those squares don't matter
+    source = [-1 for _ in range(42)]
+    #fill(source, TOP_ROW)
+    fill(source, [13,34,8]) #front right middle and back right middle and lower left corner for constraint
+    target = source [:]
+    target[13] = source[34]
+    target[34] = source[13]
+    print(f"targ... is {target}  \nsource. is {source}")
+    find_path(0,source,target,[])
+test2()   
     
     
 
