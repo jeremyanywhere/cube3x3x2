@@ -18,7 +18,7 @@
 
 
 cube = list(range(42))
-MAX_DEPTH = 2
+MAX_DEPTH = 10
 TOP_ROW = [9,10,11,12,30,31,32,33,0,1,2,20,41,21,22,23]
 moves = ['front_clock', 'front_anticlock', 'front_180',
          'back_clock', 'back_anticlock','back_180', 
@@ -151,25 +151,63 @@ def compare(source, target):
     if len(source) != len(target) :
         print ("Lengths not equal " + str(len(source)) +","+str(len(target)))
     for i in range(len(source)):
-        if source[i] != target[i]:
+        if source[i] != target[i] and target[i] != '?':
             return False
     return True
 
-def find_path(depth, source, target, breadcrumbs):
-    
+#recursive. does the main work.
+def find_path(depth, source, target, breadcrumbs):  
     if depth > MAX_DEPTH:
         return False
     # step through all possible moves, if we have the target in any case, stop iterating and return. 
     # If we don't have the target make the move, add to breadcrumbs and recurse. 
-    # TODO, also create param with list of lists which is all the  aggregated solutions.
+    # TODO, also create param with list of lists which is all the aggregated solutions.
     for move in moves:
+        if is_skippable(move, breadcrumbs):
+            continue
+        if is_abandonable(move, breadcrumbs):
+            return False
         fnc = globals()[move]
         res = fnc(source)
         if compare(res, target):  
-            print (f"path is: {breadcrumbs+[move]}\n\n\n")
+            print (f"Path ({len(breadcrumbs)+1}) is: {breadcrumbs+[move]}\n\n\n")
             found = True
             break
         ret = find_path(depth+1, res, target, breadcrumbs + [move])
+
+def is_skippable(move, breadcrumbs):
+    if len(breadcrumbs) < 1:
+        return False
+    last_underscore_index = breadcrumbs[-1].rfind('_')
+    prefix = breadcrumbs[-1][:last_underscore_index]
+    if move.startswith(prefix) and prefix != 'middle':
+        return True
+    return False
+
+def is_abandonable(move, breadcrumbs):
+    if len(breadcrumbs) < 3:
+        return False
+    if breadcrumbs[0].startswith('front') and  \
+        breadcrumbs[1].startswith('back') and \
+        breadcrumbs[2].startswith('front'):
+        return True
+    
+    if  breadcrumbs[0].startswith('back') and \
+        breadcrumbs[1].startswith('front') and \
+        breadcrumbs[2].startswith('back'):
+        return True
+    
+    if  breadcrumbs[0].startswith('right') and \
+        breadcrumbs[1].startswith('left') and \
+        breadcrumbs[2].startswith('right'):
+        return True
+    
+    if  breadcrumbs[0].startswith('left') and \
+        breadcrumbs[1].startswith('right') and \
+        breadcrumbs[2].startswith('left'):
+        return True
+    
+    return False
 
 # helps fill a cube with numbers
 def fill(lst, colors):
@@ -204,7 +242,30 @@ def test2():
     target[34] = source[13]
     print(f"targ... is {target}  \nsource. is {source}")
     find_path(0,source,target,[])
-test2()   
+
+def test3():
+    #fill with -1, so those squares don't matter
+    source = [-1 for _ in range(42)]
+    # try to fit corners on second row (from 7 -> 13), so top face needs to stay the same, and middle row apart from corner.
+    fill(source, [0,1,2,21,22,23,9,10,11,30,31,32,20,41,3,4,5,24,25,26,19,40,7]) #front right middle and back right middle and lower left corner for constraint
+    target = source [:]
+    target[5] = source[7]
+    target[7] = '?'
+    print(f"targ... is {target}  \nsource. is {source}")
+    find_path(0,source,target,[])
+
+def test4():
+    #fill with -1, so those squares don't matter
+    source = list(range(42))
+    # swap last remaining 7 and 5
+    target = source [:]
+    target[5] = source[7]
+    target[7] = source[5]
+    print(f"targ... is {target}  \nsource. is {source}")
+    find_path(0,source,target,[])
+
+
+test3()   
     
     
 
