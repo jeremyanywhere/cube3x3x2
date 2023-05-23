@@ -16,14 +16,16 @@
 # 30-41
 #
 
+import time
 
 cube = list(range(42))
-MAX_DEPTH = 10
+MAX_DEPTH = 8
 TOP_ROW = [9,10,11,12,30,31,32,33,0,1,2,20,41,21,22,23]
-moves = ['front_clock', 'front_anticlock', 'front_180',
-         'back_clock', 'back_anticlock','back_180', 
-         'top_row_rot','middle_row_rot','bottom_row_rot',
-         'left_col_rot','middle_col_rot','right_col_rot']
+
+moves = ['front_anticlock', 'left_col_rot', 'back_anticlock', 'front_180', 'top_row_rot',
+         'middle_row_rot', 'right_col_rot', 'back_180', 'front_clock', 'middle_col_rot',
+         'bottom_row_rot', 'back_clock']
+
 
 def front_clock(current):
     new_pos = current[:]
@@ -165,7 +167,7 @@ def find_path(depth, source, target, breadcrumbs):
     for move in moves:
         if is_skippable(move, breadcrumbs):
             continue
-        if is_abandonable(move, breadcrumbs):
+        if is_redundant(breadcrumbs+[move]):
             return False
         fnc = globals()[move]
         res = fnc(source)
@@ -183,28 +185,28 @@ def is_skippable(move, breadcrumbs):
     if move.startswith(prefix) and prefix != 'middle':
         return True
     return False
-
-def is_abandonable(move, breadcrumbs):
-    if len(breadcrumbs) < 3:
+# paths with repeated front/back/front are redundant and will be equivalent shorter paths, ultimately
+def is_redundant(current_path):
+    if len(current_path) < 3:
         return False
-    if breadcrumbs[0].startswith('front') and  \
-        breadcrumbs[1].startswith('back') and \
-        breadcrumbs[2].startswith('front'):
+    if current_path[-1].startswith('front') and  \
+        current_path[-2].startswith('back') and \
+        current_path[-3].startswith('front'):
         return True
     
-    if  breadcrumbs[0].startswith('back') and \
-        breadcrumbs[1].startswith('front') and \
-        breadcrumbs[2].startswith('back'):
+    if  current_path[-1].startswith('back') and \
+        current_path[-2].startswith('front') and \
+        current_path[-3].startswith('back'):
         return True
     
-    if  breadcrumbs[0].startswith('right') and \
-        breadcrumbs[1].startswith('left') and \
-        breadcrumbs[2].startswith('right'):
+    if  current_path[-1].startswith('right') and \
+        current_path[-2].startswith('left') and \
+        current_path[-3].startswith('right'):
         return True
     
-    if  breadcrumbs[0].startswith('left') and \
-        breadcrumbs[1].startswith('right') and \
-        breadcrumbs[2].startswith('left'):
+    if  current_path[-1].startswith('left') and \
+        current_path[-2].startswith('right') and \
+        current_path[-3].startswith('left'):
         return True
     
     return False
@@ -264,8 +266,30 @@ def test4():
     print(f"targ... is {target}  \nsource. is {source}")
     find_path(0,source,target,[])
 
+def test5():
+    #fill with -1, so those squares don't matter
+    source = list(range(42))
+    # swap last remaining 7 and 5
+    target = source [:]
+    target[7] = source[28]
+    target[28] = source[7]
+    target[16] = source[37]
+    target[37] = source[16]
+    print(f"targ... is {target}  \nsource. is {source}")
+    find_path(0,source,target,[])
 
-test3()   
+def go():
+    print(f"Starting with depth: {MAX_DEPTH}..")
+    start_time = time.time()
+    test5()
+    elapsed_time = time.time() - start_time
+    # Convert the elapsed time to hours and minutes
+    hours = int(elapsed_time // 3600)
+    minutes = int((elapsed_time % 3600) // 60)      ``
+    # Print the elapsed time
+    print(f"Elapsed time: {hours} hrs {minutes} mins")
+
+go()  
     
     
 
