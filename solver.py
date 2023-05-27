@@ -19,8 +19,9 @@
 import time
 
 cube = list(range(42))
-MAX_DEPTH = 8
+MAX_DEPTH = 7
 TOP_ROW = [9,10,11,12,30,31,32,33,0,1,2,20,41,21,22,23]
+all_positions = [[] for _ in range(MAX_DEPTH+1)]
 
 moves = ['front_anticlock', 'left_col_rot', 'back_anticlock', 'front_180', 'top_row_rot',
          'middle_row_rot', 'right_col_rot', 'back_180', 'front_clock', 'middle_col_rot',
@@ -165,17 +166,28 @@ def find_path(depth, source, target, breadcrumbs):
     # If we don't have the target make the move, add to breadcrumbs and recurse. 
     # TODO, also create param with list of lists which is all the aggregated solutions.
     for move in moves:
+        #TODO - do we keep these or just use a look up for all loop
         if is_skippable(move, breadcrumbs):
+            print ({breadcrumbs+[move]})
             continue
-        if is_redundant(breadcrumbs+[move]):
-            return False
+        # if is_redundant(breadcrumbs+[move]):
+        #     continue
         fnc = globals()[move]
         res = fnc(source)
+        # check to see if this position is in the global list of positions
+        # if the position exists in a smaller or equal depth, abandon
+        # if the position exists in a deeper depth, kill that position.
+        #if position_already_reached(depth,  res):
+            #print(f"found an existing position ->{depth}: {res}")
+            #break
+        #all_positions[depth].append(res)
         if compare(res, target):  
-            print (f"Path ({len(breadcrumbs)+1}) is: {breadcrumbs+[move]}\n\n\n")
+            #print (f"Path ({len(breadcrumbs)+1}) is: {breadcrumbs+[move]}\n\n\n")
+            # to persist for later
+            print ({breadcrumbs+[move]})
             found = True
             break
-        ret = find_path(depth+1, res, target, breadcrumbs + [move])
+        return find_path(depth+1, res, target, breadcrumbs + [move])
 
 def is_skippable(move, breadcrumbs):
     if len(breadcrumbs) < 1:
@@ -210,6 +222,36 @@ def is_redundant(current_path):
         return True
     
     return False
+# an imperfect prune. If there is already a similar position reached with a shorter depth of recursion, 
+# then move on.. if there is one with a longer depth.. tough. It got there. It stays. 
+def position_already_reached(depth, current):
+    for i in range(depth):
+        lol = all_positions[i]
+        if (efficient_match(current, lol)):
+            return True
+    return False
+
+# works through a list of list, finding if another list exists
+# goes through the list first, and keeps all indices that match the first element then goes through all indices, etc.
+def efficient_match(list1, lol):
+    return any(list1 == sublst for sublst in lol)
+
+
+def efficient_match2(list1, lol):
+    matching_indices = list(range(len(lol))) # start with all lists matching element 0
+    el = 0   #start by looking at element 0
+    while len(matching_indices) > 0 and el < len(list1): # while we still have matching lists.
+        next_matches = []
+        for m in matching_indices:  #what index are we checking..
+            if list1[el] == lol[m][el]:
+                    next_matches.append(m) # this element matches. That list survives to the next round.        
+        el+= 1
+        matching_indices = next_matches
+    
+
+# lol = [[1,2,3,4],[1,2,3,5],[1,2,3,6],[1,2,4,0], [0,3,4,3],[1,4,4,5]]
+# list1 = [9,2,3,9]
+# efficient_match(list1, lol)
 
 # helps fill a cube with numbers
 def fill(lst, colors):
@@ -265,6 +307,12 @@ def test4():
     target[7] = source[5]
     print(f"targ... is {target}  \nsource. is {source}")
     find_path(0,source,target,[])
+def mapToSelf():
+    source = list(range(42))
+    # swap last remaining 7 and 5
+    target = source [:]
+    print(f"targ... is {target}  \nsource. is {source}")
+    find_path(0,source,target,[])
 
 def test5():
     #fill with -1, so those squares don't matter
@@ -281,16 +329,18 @@ def test5():
 def go():
     print(f"Starting with depth: {MAX_DEPTH}..")
     start_time = time.time()
-    test5()
+    mapToSelf()
+    #test3()
     elapsed_time = time.time() - start_time
     # Convert the elapsed time to hours and minutes
     hours = int(elapsed_time // 3600)
-    minutes = int((elapsed_time % 3600) // 60)      ``
+    minutes = int((elapsed_time % 3600) // 60)
     # Print the elapsed time
     print(f"Elapsed time: {hours} hrs {minutes} mins")
 
-go()  
-    
+go() 
+
+
     
 
 
