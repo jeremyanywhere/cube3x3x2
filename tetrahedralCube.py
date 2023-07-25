@@ -1,75 +1,34 @@
 
 #cube is numbered thus.
-#front face from top left to bottom right in three rows
-#    0,1,2
-#    3,4,5
-#    6,7,8
-# then along the top from top left.. anti clock wise, around to the left top. 
-# 9-20
-# the back face, done the same, but in mirror image, or as if you were looking through \
-# the front face if it was transparent 
-# 21,22,23
-# 24,25,26,
-# 27,28,29  etc.
-# then along the top from the top left (looking through the front face) anti clock
-# around to left top
-# 30-41
-#
-from itertools import permutations
+#The main triangular pieces are number on each face, 1, 
+#then 234, then on the face to the right, 5, 678 etc. but the corner pieces are tetrahedrons and 
+#have 3 faces themselves, 
+# so each one of those gets an a,b,c.  The middle pieces don't, but to keep the model
+# of teh cube consistent and simple we divide each middle piece into 3 triangles, 
+# each divided triangle being adjacent to a corner.
+# That gives us an effective total count of 24 pieces
+# we have 9 moves
+
 import time
 
-cube = list(range(42))
-MAX_DEPTH =7
-TOP_ROW = [9,10,11,12,30,31,32,33,0,1,2,20,41,21,22,23]
+MAX_DEPTH = 7
+
 all_positions = [[] for _ in range(MAX_DEPTH+1)]
+start_position = my_dict = {"1a": "1a", "1b": "1b", "1c": "1c", "2a": "2a", "2b": "2b", "2c": "2c", 
+                            "3a": "3a", "3b": "3b", "3c": "3c", "4a": "4a", "4b": "4b", "4c": "4c", 
+                            "5a": "5a", "5b": "5b", "5c": "5c", "6a": "6a", "6b": "6b", "6c": "6c", 
+                            "7a": "7a", "7b": "7b", "7c": "7c", "8a": "8a", "8b": "8b", "8c": "8c"}
 
-moves = ['front_anticlock', 'left_col_rot', 'back_anticlock', 'front_180', 'top_row_rot',
-         'middle_row_rot', 'right_col_rot', 'back_180', 'front_clock', 'middle_col_rot',
-         'bottom_row_rot', 'back_clock']
+moves = ['right_forward', 'right_back', 'right_180',
+         'left_forward', 'left_back', 'left_180',
+         'top_left', 'top_right', 'top_180']
 
-# generate all valid combinations of depth 2 moves (e.g. ['right_col_rot', 'back_180'] 
-# or ['front_clock', 'middle_col_rot'])
-
-# idea, maybe do the sanity checking in the task, so that the tasks can throw away 
-# bad pairs. That way we can initiate with a simple list of permutation pairs
-# either way, parameters should be the first two moves..
-
-def generate_depth_2s():
-    valid_permutations = []
-    for pair in permutations(moves, 2):
-        valid = True
-        bad_pairings =['anticlock','clock','back','front','top','middle_col','middle_row','right','left','col_rot','row_rot']
-        bad_combos = [['back','front'],['bottom','top'],['left','right']]
-        for bp in bad_pairings:
-            if bp in pair[0] and bp in pair[1]:
-                valid = False
-            for bc in bad_combos:
-                if (bc[0] in pair[0] and bc[1] in pair[1]):
-                    valid = False
-                if (bc[1] in pair[0] and bc[0] in pair[1]):
-                    valid = False     
-        if valid:
-            valid_permutations.append(pair)
-    return valid_permutations
-def do_depth2_transforms(source, depth2s):
-    res = []
-    for pairs in depth2s:
-        fnc = globals()[pairs[0]]
-        res = fnc(source)
-        fnc = globals()[pairs[1]]
-        res2 = fnc(res)
-        print(f"pair-{pairs} and pos {res2}")
-    #find_path(0,source,target,[])
 
 def front_clock(current):
-    new_pos = current[:]
-    new_pos[0] = current[6];  new_pos[1] = current[3]; new_pos[2] = current[0]
-    new_pos[3] = current[7];  new_pos[4] = current[4]; new_pos[5] = current[1]
-    new_pos[6] = current[8];  new_pos[7] = current[5]; new_pos[8] = current[2]
-    new_pos[9] = current[18]; new_pos[10] = current[19]; new_pos[11] = current[20]
-    new_pos[12] = current[9]; new_pos[13] = current[10]; new_pos[14] = current[11]
-    new_pos[15] = current[12]; new_pos[16] = current[13]; new_pos[17] = current[14]
-    new_pos[18] = current[15]; new_pos[19] = current[16]; new_pos[20] = current[17]
+    new_pos = current.copy()
+    new_pos["4a"] = "8a"
+    new_pos["4b"] = "8c"
+
     return new_pos
 
 def front_anticlock(current):
@@ -199,13 +158,12 @@ def find_path(depth, source, target, breadcrumbs):
     # If we don't have the target make the move, add to breadcrumbs and recurse. 
     # TODO, also create param with list of lists which is all the aggregated solutions.
     for move in moves:
-        # print(f"in moves.. {move}")
         #TODO - do we keep these or just use a look up for all loop
         if is_skippable(move, breadcrumbs):
-            #print ({breadcrumbs+[move]})
+            print ({breadcrumbs+[move]})
             continue
-        if is_redundant(breadcrumbs+[move]):
-            continue
+        # if is_redundant(breadcrumbs+[move]):
+        #     continue
         fnc = globals()[move]
         res = fnc(source)
         # check to see if this position is in the global list of positions
@@ -218,25 +176,20 @@ def find_path(depth, source, target, breadcrumbs):
         if compare(res, target):  
             #print (f"Path ({len(breadcrumbs)+1}) is: {breadcrumbs+[move]}\n\n\n")
             # to persist for later
-            print (f"{breadcrumbs + [move]}")
+            print ({breadcrumbs+[move]})
             found = True
-        # print(f" breadcrumbs are.. {breadcrumbs} ")
-        result  =  find_path(depth+1, res, target, breadcrumbs + [move])
+            break
+        return find_path(depth+1, res, target, breadcrumbs + [move])
 
-# if we have just moved a face (front or back) then moving that face again is pointless
 def is_skippable(move, breadcrumbs):
     if len(breadcrumbs) < 1:
         return False
     last_underscore_index = breadcrumbs[-1].rfind('_')
     prefix = breadcrumbs[-1][:last_underscore_index]
-    # don't do two moves the same
-    if breadcrumbs[-1] == move:
-        return True
-    # don't do two consecutive front moves or back moves
-    if ("front" in prefix or "back" in prefix) and move.startswith(prefix):
+    if move.startswith(prefix) and prefix != 'middle':
         return True
     return False
-# paths with repeated front/back/front are redundant and will be equivalent to shorter paths, ultimately
+# paths with repeated front/back/front are redundant and will be equivalent shorter paths, ultimately
 def is_redundant(current_path):
     if len(current_path) < 3:
         return False
@@ -337,7 +290,8 @@ def test3():
     print(f"targ... is {target}  \nsource. is {source}")
     find_path(0,source,target,[])
 
-def swap_last_7_and_5():
+def test4():
+    #fill with -1, so those squares don't matter
     source = list(range(42))
     # swap last remaining 7 and 5
     target = source [:]
@@ -345,14 +299,15 @@ def swap_last_7_and_5():
     target[7] = source[5]
     print(f"targ... is {target}  \nsource. is {source}")
     find_path(0,source,target,[])
-
 def mapToSelf():
     source = list(range(42))
+    # swap last remaining 7 and 5
     target = source [:]
     print(f"targ... is {target}  \nsource. is {source}")
     find_path(0,source,target,[])
 
 def test5():
+    #fill with -1, so those squares don't matter
     source = list(range(42))
     # swap last remaining 7 and 5
     target = source [:]
@@ -364,23 +319,18 @@ def test5():
     find_path(0,source,target,[])
 
 def go():
-    runner='swap_last_7_and_5'
-    fncr = globals()[runner]
-    print(f"Running method: {runner}()")
     print(f"Starting with depth: {MAX_DEPTH}..")
     start_time = time.time()
-    #mapToSelf()
-    fncr()
+    mapToSelf()
+    #test3()
     elapsed_time = time.time() - start_time
     # Convert the elapsed time to hours and minutes
     hours = int(elapsed_time // 3600)
     minutes = int((elapsed_time % 3600) // 60)
     # Print the elapsed time
     print(f"Elapsed time: {hours} hrs {minutes} mins")
-gd2 = generate_depth_2s()
-print(f"generate_depth_2s (found {len(gd2)}) - {gd2}")
-do_depth2_transforms(cube,gd2)
-#go() 
+
+go() 
 
 
     
