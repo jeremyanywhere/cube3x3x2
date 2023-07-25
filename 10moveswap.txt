@@ -1,0 +1,1 @@
+[left_col_rot, back_anticlock, front_clock, left_col_rot, top_row_rot, back_180, top_row_rot, back_clock, front_clock, top_row_rot, front_180]

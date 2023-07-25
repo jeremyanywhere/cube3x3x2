@@ -35,31 +35,31 @@ moves = ['front_anticlock', 'left_col_rot', 'back_anticlock', 'front_180', 'top_
 # either way, parameters should be the first two moves..
 
 def generate_depth_2s():
-    valid_permutations = []
+    perm_list = []
     for pair in permutations(moves, 2):
-        valid = True
-        bad_pairings =['anticlock','clock','back','front','top','middle_col','middle_row','right','left','col_rot','row_rot']
-        bad_combos = [['back','front'],['bottom','top'],['left','right']]
-        for bp in bad_pairings:
-            if bp in pair[0] and bp in pair[1]:
-                valid = False
-            for bc in bad_combos:
-                if (bc[0] in pair[0] and bc[1] in pair[1]):
-                    valid = False
-                if (bc[1] in pair[0] and bc[0] in pair[1]):
-                    valid = False     
-        if valid:
-            valid_permutations.append(pair)
-    return valid_permutations
-def do_depth2_transforms(source, depth2s):
-    res = []
-    for pairs in depth2s:
-        fnc = globals()[pairs[0]]
-        res = fnc(source)
-        fnc = globals()[pairs[1]]
-        res2 = fnc(res)
-        print(f"pair-{pairs} and pos {res2}")
-    #find_path(0,source,target,[])
+        perm_list.append(list(pair))
+    return perm_list
+
+def is_bad_pairing(pair):
+    bad_pairings =['anticlock','clock','back','front','top','middle_col','middle_row','right','left','col_rot','row_rot']
+    bad_combos = [['back','front'],['bottom','top'],['left','right']]
+    for bp in bad_pairings:
+        if bp in pair[0] and bp in pair[1]:
+            return True
+        for bc in bad_combos:
+            if (bc[0] in pair[0] and bc[1] in pair[1]):
+                return True
+            if (bc[1] in pair[0] and bc[0] in pair[1]):
+                return True     
+    return False
+# this would be done outside of this script.. the actual task is "find_path_with_two_move etc."
+def start_from_depth2(source, target, depth2s):
+    count_ = 1
+    for pair in depth2s:
+        print (f"{count_} and counting")
+        count_ += 1
+        find_path_with_two_move_start(pair, source, target)
+
 
 def front_clock(current):
     new_pos = current[:]
@@ -191,9 +191,23 @@ def compare(source, target):
             return False
     return True
 
-#recursive. does the main work.
+#recursive. does the main work. This needs to be called as a single task. 
+def find_path_with_two_move_start(pair_of_moves, source, target):
+    if is_bad_pairing(pair_of_moves):
+        print(f"bad pairing {pair_of_moves}")
+        return False # reject bad moves straight away. 
+    print(f"firing for.. {pair_of_moves}")
+    fnc = globals()[pair_of_moves[0]]
+    res = fnc(source)
+    fnc = globals()[pair_of_moves[1]]
+    res2 = fnc(res)
+    #print(f"transformed source {res2}, target {target}")
+    find_path(2, res2, target, pair_of_moves)
+
+
 def find_path(depth, source, target, breadcrumbs):  
     if depth > MAX_DEPTH:
+        #print(f"Hello max - {depth}")
         return False
     # step through all possible moves, if we have the target in any case, stop iterating and return. 
     # If we don't have the target make the move, add to breadcrumbs and recurse. 
@@ -261,7 +275,7 @@ def is_redundant(current_path):
         return True
     
     return False
-# an imperfect prune. If there is already a similar position reached with a shorter depth of recursion, 
+# an imperfect pruning. If there is already a similar position reached with a shorter depth of recursion, 
 # then move on.. if there is one with a longer depth.. tough. It got there. It stays. 
 def position_already_reached(depth, current):
     for i in range(depth):
@@ -293,8 +307,8 @@ def efficient_match2(list1, lol):
 # efficient_match(list1, lol)
 
 # helps fill a cube with numbers
-def fill(lst, colors):
-    for c in colors:
+def fill(lst, squares):
+    for c in squares:
         lst[c] = c
 
 def test1():
@@ -324,7 +338,7 @@ def test2():
     target[13] = source[34]
     target[34] = source[13]
     print(f"targ... is {target}  \nsource. is {source}")
-    find_path(0,source,target,[])
+    start_from_depth2(MAX_DEPTH, source, target, generate_depth_2s())
 
 def test3():
     #fill with -1, so those squares don't matter
@@ -343,8 +357,9 @@ def swap_last_7_and_5():
     target = source [:]
     target[5] = source[7]
     target[7] = source[5]
-    print(f"targ... is {target}  \nsource. is {source}")
-    find_path(0,source,target,[])
+    print(f"targ is... is {target}  \nsource is.. {source}")
+    start_from_depth2(source, target, generate_depth_2s())
+    #find_path(0,source,target,[])
 
 def mapToSelf():
     source = list(range(42))
@@ -363,8 +378,7 @@ def test5():
     print(f"targ... is {target}  \nsource. is {source}")
     find_path(0,source,target,[])
 
-def go():
-    runner='swap_last_7_and_5'
+def go(runner):
     fncr = globals()[runner]
     print(f"Running method: {runner}()")
     print(f"Starting with depth: {MAX_DEPTH}..")
@@ -377,10 +391,10 @@ def go():
     minutes = int((elapsed_time % 3600) // 60)
     # Print the elapsed time
     print(f"Elapsed time: {hours} hrs {minutes} mins")
-gd2 = generate_depth_2s()
-print(f"generate_depth_2s (found {len(gd2)}) - {gd2}")
-do_depth2_transforms(cube,gd2)
-#go() 
+# gd2 = generate_depth_2s()
+# print(f"generate_depth_2s (found {len(gd2)}) - {gd2}")
+# do_depth2_transforms(cube,gd2)
+go('swap_last_7_and_5') 
 
 
     
