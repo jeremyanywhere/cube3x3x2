@@ -19,7 +19,7 @@ from itertools import permutations
 import time
 
 cube = list(range(42))
-MAX_DEPTH =7
+MAX_DEPTH =8
 TOP_ROW = [9,10,11,12,30,31,32,33,0,1,2,20,41,21,22,23]
 all_positions = [[] for _ in range(MAX_DEPTH+1)]
 
@@ -54,6 +54,7 @@ def is_bad_pairing(pair):
                 return True     
     return False
 # this would be done outside of this script.. the actual task is "find_path_with_two_move etc."
+
 def start_from_depth2(source, target, depth2s):
     count_ = 1
     for pair in depth2s:
@@ -341,10 +342,10 @@ def test2():
     print(f"targ... is {target}  \nsource. is {source}")
     start_from_depth2(MAX_DEPTH, source, target, generate_depth_2s())
 
-def test3():
+def fit_edge_bottom_to_side():
     #fill with -1, so those squares don't matter
     source = [-1 for _ in range(42)]
-    # try to fit corners on second row (from 7 -> 13), so top face needs to stay the same, and middle row apart from corner.
+    # try to fit edge on second row (from 7 -> 13), so top face needs to stay the same, and middle row apart from corner.
     fill(source, [0,1,2,21,22,23,9,10,11,30,31,32,20,41,3,4,5,24,25,26,19,40,7]) #front right middle and back right middle and lower left corner for constraint
     target = source [:]
     target[5] = source[7]
