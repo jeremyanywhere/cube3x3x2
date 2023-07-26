@@ -41,7 +41,8 @@ def generate_depth_2s():
     return perm_list
 
 def is_bad_pairing(pair):
-    bad_pairings =['anticlock','clock','back','front','top','middle_col','middle_row','right','left','col_rot','row_rot']
+    return False
+    bad_pairings =['_anticlock','_clock','back','front','top','middle_col','middle_row','right','left','col_rot','row_rot']
     bad_combos = [['back','front'],['bottom','top'],['left','right']]
     for bp in bad_pairings:
         if bp in pair[0] and bp in pair[1]:
