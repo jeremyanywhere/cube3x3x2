@@ -80,13 +80,13 @@ def apply_move(move, current_pos):
 # idea, maybe do the sanity checking in the task, so that the tasks can throw away 
 # bad pairs. That way we can initiate with a simple list of permutation pairs
 # either way, parameters should be the first two moves..
-
+#TEST method. This doesn't need to be in the final script. 
 def generate_depth_2s():
     perm_list = []
     for pair in permutations(moves, 2):
         perm_list.append(list(pair))
     return perm_list
-
+# Checks if the first two moves are "useless", like moving the front face and then the back face
 def is_bad_pairing(pair):
     bad_pairings =['_anticlock','_clock','back','front','top','middle_col','middle_row','right','left','col_rot','row_rot']
     bad_combos = [['back','front'],['bottom','top'],['left','right']]
