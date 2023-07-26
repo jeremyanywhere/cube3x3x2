@@ -19,7 +19,7 @@ from itertools import permutations
 import time
 
 cube = list(range(42))
-MAX_DEPTH =8
+MAX_DEPTH =6
 TOP_ROW = [9,10,11,12,30,31,32,33,0,1,2,20,41,21,22,23]
 all_positions = [[] for _ in range(MAX_DEPTH+1)]
 
@@ -27,6 +27,53 @@ moves = ['front_anticlock', 'left_col_rot', 'back_anticlock', 'front_180', 'top_
          'middle_row_rot', 'right_col_rot', 'back_180', 'front_clock', 'middle_col_rot',
          'bottom_row_rot', 'back_clock']
 
+move_dict = {'front_clock':((0, 6), (1, 3), (2, 0), (3, 7), (4, 4), (5, 1),
+                                (6, 8), (7, 5), (8, 2), (9, 18), (10, 19), (11, 20),
+                                (12, 9), (13, 10), (14, 11), (15, 12), (16, 13), (17, 14),
+                                (18, 15), (19, 16), (20, 17)),
+            'front_anticlock':((0, 2), (1, 5), (2, 8), (3, 1), (5, 7),
+                                (6, 0), (7, 3), (8, 6), (9, 12), (10, 13),
+                                (11, 14), (12, 15), (13, 16), (14, 17), (15, 18),
+                                (16, 19), (17, 20), (18, 9), (19, 10), (20, 11)),
+            'front_180':( (0, 8), (1, 7), (2, 6), (3, 5), (5, 3),
+                                (6, 2), (7, 1), (8, 0), (9, 15), (10, 16),
+                                (11, 17), (12, 18), (13, 19), (14, 20), (15, 9),
+                                (16, 10), (17, 11), (18, 12), (19, 13), (20, 14)),
+            'back_clock':((21, 27), (22, 24), (23, 21),(24, 28), (25, 25), (26, 22),
+                                (27, 29), (28, 26), (29, 23),(30, 39), (31, 40), (32, 41),
+                                (33, 30), (34, 31), (35, 32),(36, 33), (37, 34), (38, 35),
+                                (39, 36), (40, 37), (41, 38)),
+            'back_anticlock':((21, 23), (22, 26), (23, 29),
+                                (24, 22), (26, 28),(27, 21), (28, 24), (29, 27),
+                                (30, 33), (31, 34), (32, 35),(33, 36), (34, 37), (35, 38),
+                                (36, 39), (37, 40), (38, 41),(39, 30), (40, 31), (41, 32)),
+            'back_180':((21, 29), (22, 28), (23, 27),(24, 26), (26, 24),
+                                (27, 23), (28, 22), (29, 21),(30, 36), (31, 37), (32, 38),
+                                (33, 39), (34, 40), (35, 41),(36, 30), (37, 31), (38, 32),
+                                (39, 33), (40, 34), (41, 35)),
+            'top_row_rot':((9, 32), (10, 31), (11, 30),(30, 11), (31, 10), (32, 9),
+                                (0, 23), (1, 22), (2, 21),(23, 0), (22, 1), (21, 2),
+                                (20, 33), (12, 41),(33, 20), (41, 12)),
+            'middle_row_rot':((3, 26), (4, 25), (5, 24),(26, 3), (25, 4), (24, 5),
+                                (13, 40), (19, 34),(34, 19), (40, 13)),
+            'bottom_row_rot':((6, 29), (7, 28), (8, 27),(29, 6), (28, 7), (27, 8),
+                                (15, 38), (16, 37), (17, 36),(38, 15), (37, 16), (36, 17),
+                                (14, 39), (36, 18),(39, 14), (18, 36)),
+            'left_col_rot':((18, 41), (19, 40), (20, 39),(41, 18), (40, 19), (39, 20),
+                                (0, 27), (3, 24), (6, 21),(27, 0), (24, 3), (21, 6),
+                                (9, 38), (38, 9),(30, 17), (17, 30)),
+            'middle_col_rot':((1, 28), (4, 25), (7, 22),(28, 1), (25, 4), (22, 7),
+                                (10, 37), (37, 10),(31, 16), (16, 31)),
+            'right_col_rot':((12, 35), (13, 34), (14, 33),(35, 12), (34, 13), (33, 14),
+                                (2, 29), (5, 26), (8, 23),(29, 2), (26, 5), (23, 8),
+                                (11, 32), (32, 11),
+                                (36, 15), (15, 36))}
+
+def apply_move(move, current_pos):
+    new_pos = current_pos[:]
+    for swap in move_dict[move]:
+        new_pos[swap[0]] = current_pos[swap[1]]
+    return new_pos
 # generate all valid combinations of depth 2 moves (e.g. ['right_col_rot', 'back_180'] 
 # or ['front_clock', 'middle_col_rot'])
 
@@ -41,7 +88,6 @@ def generate_depth_2s():
     return perm_list
 
 def is_bad_pairing(pair):
-    return False
     bad_pairings =['_anticlock','_clock','back','front','top','middle_col','middle_row','right','left','col_rot','row_rot']
     bad_combos = [['back','front'],['bottom','top'],['left','right']]
     for bp in bad_pairings:
@@ -58,132 +104,8 @@ def is_bad_pairing(pair):
 def start_from_depth2(source, target, depth2s):
     count_ = 1
     for pair in depth2s:
-        print (f"{count_} and counting")
         count_ += 1
         find_path_with_two_move_start(pair, source, target)
-
-
-def front_clock(current):
-    new_pos = current[:]
-    new_pos[0] = current[6];  new_pos[1] = current[3]; new_pos[2] = current[0]
-    new_pos[3] = current[7];  new_pos[4] = current[4]; new_pos[5] = current[1]
-    new_pos[6] = current[8];  new_pos[7] = current[5]; new_pos[8] = current[2]
-    new_pos[9] = current[18]; new_pos[10] = current[19]; new_pos[11] = current[20]
-    new_pos[12] = current[9]; new_pos[13] = current[10]; new_pos[14] = current[11]
-    new_pos[15] = current[12]; new_pos[16] = current[13]; new_pos[17] = current[14]
-    new_pos[18] = current[15]; new_pos[19] = current[16]; new_pos[20] = current[17]
-    return new_pos
-
-def front_anticlock(current):
-    new_pos = current[:]
-    new_pos[0] = current[2]; new_pos[1] = current[5]; new_pos[2] = current[8]
-    new_pos[3] = current[1];                          new_pos[5] = current[7]
-    new_pos[6] = current[0]; new_pos[7] = current[3]; new_pos[8] = current[6]
-    new_pos[9] = current[12]; new_pos[10] = current[13]; new_pos[11] = current[14]
-    new_pos[12] = current[15]; new_pos[13] = current[16]; new_pos[14] = current[17]
-    new_pos[15] = current[18]; new_pos[16] = current[19]; new_pos[17] = current[20]
-    new_pos[18] = current[9]; new_pos[19] = current[10]; new_pos[20] = current[11]
-    return new_pos
-
-def front_180(current=[]):
-    new_pos = current[:]
-    new_pos[0] = current[8]; new_pos[1] = current[7]; new_pos[2] = current[6]
-    new_pos[3] = current[5];                          new_pos[5] = current[3]
-    new_pos[6] = current[2]; new_pos[7] = current[1]; new_pos[8] = current[0]
-    new_pos[9] = current[15]; new_pos[10] = current[16]; new_pos[11] = current[17]
-    new_pos[12] = current[18]; new_pos[13] = current[19]; new_pos[14] = current[20]
-    new_pos[15] = current[9]; new_pos[16] = current[10]; new_pos[17] = current[11]
-    new_pos[18] = current[12]; new_pos[19] = current[13]; new_pos[20] = current[14]
-    return new_pos
-
-def back_clock(current):
-    new_pos = current[:]
-    new_pos[21] = current[27]; new_pos[22] = current[24]; new_pos[23] = current[21]
-    new_pos[24] = current[28]; new_pos[25] = current[25]; new_pos[26] = current[22]
-    new_pos[27] = current[29]; new_pos[28] = current[26]; new_pos[29] = current[23]
-    new_pos[30] = current[39]; new_pos[31] = current[40]; new_pos[32] = current[41]
-    new_pos[33] = current[30]; new_pos[34] = current[31]; new_pos[35] = current[32]
-    new_pos[36] = current[33]; new_pos[37] = current[34]; new_pos[38] = current[35]
-    new_pos[39] = current[36]; new_pos[40] = current[37]; new_pos[41] = current[38]
-    return new_pos
-
-def back_anticlock(current):
-    new_pos = current[:]
-    new_pos[21] = current[23]; new_pos[22] = current[26]; new_pos[23] = current[29]
-    new_pos[24] = current[22];                            new_pos[26] = current[28]
-    new_pos[27] = current[21]; new_pos[28] = current[24]; new_pos[29] = current[27]
-    new_pos[30] = current[33]; new_pos[31] = current[34]; new_pos[32] = current[35]
-    new_pos[33] = current[36]; new_pos[34] = current[37]; new_pos[35] = current[38]
-    new_pos[36] = current[39]; new_pos[37] = current[40]; new_pos[38] = current[41]
-    new_pos[39] = current[30]; new_pos[40] = current[31]; new_pos[41] = current[32]
-    return new_pos
-
-def back_180(current):
-    new_pos = current[:]
-    new_pos[21] = current[29]; new_pos[22] = current[28]; new_pos[23] = current[27]
-    new_pos[24] = current[26];                            new_pos[26] = current[24]
-    new_pos[27] = current[23]; new_pos[28] = current[22]; new_pos[29] = current[21]
-    new_pos[30] = current[36]; new_pos[31] = current[37]; new_pos[32] = current[38]
-    new_pos[33] = current[39]; new_pos[34] = current[40]; new_pos[35] = current[41]
-    new_pos[36] = current[30]; new_pos[37] = current[31]; new_pos[38] = current[32]
-    new_pos[39] = current[33]; new_pos[40] = current[34]; new_pos[41] = current[35]
-    return new_pos
-
-def top_row_rot(current):
-    new_pos = current[:]
-    new_pos[9] = current[32]; new_pos[10] = current[31]; new_pos[11] = current[30]
-    new_pos[30] = current[11]; new_pos[31] = current[10]; new_pos[32] = current[9]
-    new_pos[0] = current[23]; new_pos[1] = current[22]; new_pos[2] = current[21]
-    new_pos[23] = current[0]; new_pos[22] = current[1]; new_pos[21] = current[2]
-    new_pos[20] = current[33]; new_pos[12] = current[41]
-    new_pos[33] = current[20]; new_pos[41] = current[12]
-    return new_pos
-
-def middle_row_rot(current):
-    new_pos = current[:]
-    new_pos[3] = current[26]; new_pos[4] = current[25]; new_pos[5] = current[24]
-    new_pos[26] = current[3]; new_pos[25] = current[4]; new_pos[24] = current[5]
-    new_pos[13] = current[40]; new_pos[19] = current[34]
-    new_pos[34] = current[19]; new_pos[40] = current[13]
-    return  new_pos
-
-def bottom_row_rot(current=[]):
-    new_pos = current[:]
-    new_pos[6] = current[29]; new_pos[7] = current[28]; new_pos[8] = current[27]
-    new_pos[29] = current[6]; new_pos[28] = current[7]; new_pos[27] = current[8]
-    new_pos[15] = current[38]; new_pos[16] = current[37]; new_pos[17] = current[36]
-    new_pos[38] = current[15]; new_pos[37] = current[16]; new_pos[36] = current[17]
-    new_pos[14] = current[39]; new_pos[36] = current[18]
-    new_pos[39] = current[14]; new_pos[18] = current[36]
-    return new_pos
-
-def left_col_rot(current):
-    new_pos = current[:]
-    new_pos[18] = current[41]; new_pos[19] = current[40]; new_pos[20] = current[39]
-    new_pos[41] = current[18]; new_pos[40] = current[19]; new_pos[39] = current[20]
-    new_pos[0] = current[27]; new_pos[3] = current[24]; new_pos[6] = current[21]
-    new_pos[27] = current[0]; new_pos[24] = current[3]; new_pos[21] = current[6]
-    new_pos[9] = current[38]; new_pos[38] = current[9]
-    new_pos[30] = current[17]; new_pos[17] = current[30]
-    return new_pos
-
-def middle_col_rot(current):
-    new_pos = current[:]
-    new_pos[1] = current[28]; new_pos[4] = current[25]; new_pos[7] = current[22]
-    new_pos[28] = current[1]; new_pos[25] = current[4]; new_pos[22] = current[7]
-    new_pos[10] = current[37]; new_pos[37] = current[10]
-    new_pos[31] = current[16]; new_pos[16] = current[31]
-    return  new_pos
-
-def right_col_rot(current):
-    new_pos = current[:]
-    new_pos[12] = current[35]; new_pos[13] = current[34]; new_pos[14] = current[33]
-    new_pos[35] = current[12]; new_pos[34] = current[13]; new_pos[33] = current[14]
-    new_pos[2] = current[29]; new_pos[5] = current[26]; new_pos[8] = current[23]
-    new_pos[29] = current[2]; new_pos[26] = current[5]; new_pos[23] = current[8]
-    new_pos[11] = current[32]; new_pos[32] = current[11]
-    new_pos[36] = current[15]; new_pos[15] = current[36]
-    return new_pos
 
 def compare(source, target):
     if len(source) != len(target) :
@@ -193,16 +115,15 @@ def compare(source, target):
             return False
     return True
 
-#recursive. does the main work. This needs to be called as a single task. 
+#recursive. does the main work. This needs to be called as a single task. A pair of moves are passed
+# with the assumption that they are unique in the problem space and that they have 
 def find_path_with_two_move_start(pair_of_moves, source, target):
     if is_bad_pairing(pair_of_moves):
         print(f"bad pairing {pair_of_moves}")
         return False # reject bad moves straight away. 
-    print(f"firing for.. {pair_of_moves}")
-    fnc = globals()[pair_of_moves[0]]
-    res = fnc(source)
-    fnc = globals()[pair_of_moves[1]]
-    res2 = fnc(res)
+    # fnc = globals()[pair_of_moves[0]]
+    res = apply_move(pair_of_moves[0],source)
+    res2 = apply_move(pair_of_moves[1],res)
     #print(f"transformed source {res2}, target {target}")
     find_path(2, res2, target, pair_of_moves)
 
@@ -214,27 +135,14 @@ def find_path(depth, source, target, breadcrumbs):
     # step through all possible moves, if we have the target in any case, stop iterating and return. 
     # If we don't have the target make the move, add to breadcrumbs and recurse. 
     # TODO, also create param with list of lists which is all the aggregated solutions.
-    for move in moves:
-        # print(f"in moves.. {move}")
-        #TODO - do we keep these or just use a look up for all loop
+    for move in move_dict.keys():
         if is_skippable(move, breadcrumbs):
-            #print ({breadcrumbs+[move]})
             continue
         if is_redundant(breadcrumbs+[move]):
             continue
-        fnc = globals()[move]
-        res = fnc(source)
-        # check to see if this position is in the global list of positions
-        # if the position exists in a smaller or equal depth, abandon
-        # if the position exists in a deeper depth, kill that position.
-        #if position_already_reached(depth,  res):
-            #print(f"found an existing position ->{depth}: {res}")
-            #break
-        #all_positions[depth].append(res)
+        res = apply_move(move, source)
         if compare(res, target):  
-            #print (f"Path ({len(breadcrumbs)+1}) is: {breadcrumbs+[move]}\n\n\n")
-            # to persist for later
-            print (f"{breadcrumbs + [move]}")
+            print (f"{len(breadcrumbs)+1} {breadcrumbs + [move]}")
             found = True
         # print(f" breadcrumbs are.. {breadcrumbs} ")
         result  =  find_path(depth+1, res, target, breadcrumbs + [move])
@@ -277,36 +185,6 @@ def is_redundant(current_path):
         return True
     
     return False
-# an imperfect pruning. If there is already a similar position reached with a shorter depth of recursion, 
-# then move on.. if there is one with a longer depth.. tough. It got there. It stays. 
-def position_already_reached(depth, current):
-    for i in range(depth):
-        lol = all_positions[i]
-        if (efficient_match(current, lol)):
-            return True
-    return False
-
-# works through a list of list, finding if another list exists
-# goes through the list first, and keeps all indices that match the first element then goes through all indices, etc.
-def efficient_match(list1, lol):
-    return any(list1 == sublst for sublst in lol)
-
-
-def efficient_match2(list1, lol):
-    matching_indices = list(range(len(lol))) # start with all lists matching element 0
-    el = 0   #start by looking at element 0
-    while len(matching_indices) > 0 and el < len(list1): # while we still have matching lists.
-        next_matches = []
-        for m in matching_indices:  #what index are we checking..
-            if list1[el] == lol[m][el]:
-                    next_matches.append(m) # this element matches. That list survives to the next round.        
-        el+= 1
-        matching_indices = next_matches
-    
-
-# lol = [[1,2,3,4],[1,2,3,5],[1,2,3,6],[1,2,4,0], [0,3,4,3],[1,4,4,5]]
-# list1 = [9,2,3,9]
-# efficient_match(list1, lol)
 
 # helps fill a cube with numbers
 def fill(lst, squares):
@@ -323,10 +201,10 @@ def test1():
     target[13] = source[34]
     target[34] = source[13]
     print(f"targ... is {target}  \nsource. is {source}")
-    source = middle_row_rot(source)
-    source = left_col_rot(source)
-    source = middle_row_rot(source)
-    source = right_col_rot(source)
+    source = apply_move('middle_row_rot',source)
+    source = apply_move('left_col_rot',source)
+    source = apply_move('middle_row_rot',source)
+    source = apply_move('right_col_rot',source)
     print(f"after  rot: \ntarg... is {target} - \nsource. is {source}")
     print (compare(source, target))
     #find_path(0,source,target,[])
@@ -351,7 +229,8 @@ def fit_edge_bottom_to_side():
     target[5] = source[7]
     target[7] = '?'
     print(f"targ... is {target}  \nsource. is {source}")
-    find_path(0,source,target,[])
+    start_from_depth2(source, target, generate_depth_2s())
+    #find_path(0,source,target,[])
 
 def swap_last_7_and_5():
     source = list(range(42))
@@ -391,12 +270,13 @@ def go(runner):
     # Convert the elapsed time to hours and minutes
     hours = int(elapsed_time // 3600)
     minutes = int((elapsed_time % 3600) // 60)
+    seconds = int(elapsed_time % 60)
     # Print the elapsed time
-    print(f"Elapsed time: {hours} hrs {minutes} mins")
+    print(f"Elapsed time: {hours} hrs {minutes} mins {seconds} seconds")
 # gd2 = generate_depth_2s()
 # print(f"generate_depth_2s (found {len(gd2)}) - {gd2}")
 # do_depth2_transforms(cube,gd2)
-go('swap_last_7_and_5') 
+go('fit_edge_bottom_to_side') 
 
 
     
